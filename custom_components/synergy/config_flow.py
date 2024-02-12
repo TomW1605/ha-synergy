@@ -20,24 +20,26 @@
 import os
 from typing import Any
 
-import ideenergy
+from .SynergyDataFetcher import SynergyDataFetcher, get_premise_id, AddressError
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_ADDRESS, CONF_EMAIL, CONF_PASSWORD, CONF_HOST, CONF_PORT
 from homeassistant.core import callback  # noqa: F401
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from . import _LOGGER
-from .const import CONF_CONTRACT, CONFIG_ENTRY_VERSION, DOMAIN
+from .const import CONF_PREMISE_ID, CONFIG_ENTRY_VERSION, DOMAIN
 
 AUTH_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_USERNAME, default=os.environ.get("HASS_I_DE_USERNAME")): str,
-        vol.Required(CONF_PASSWORD, default=os.environ.get("HASS_I_DE_PASSWORD")): str,
+        vol.Required(CONF_ADDRESS, msg="Synergy Account Address"): str,
+        vol.Required(CONF_EMAIL, msg="Email Address"): str,
+        vol.Required(CONF_PASSWORD, msg="Email Password"): str,
+        vol.Required(CONF_HOST, msg="Email Host"): str,
+        vol.Optional(CONF_PORT, msg="Email Port", default=993): int,
     }
 )
-
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     VERSION = CONFIG_ENTRY_VERSION
@@ -65,54 +67,49 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
             # await self.async_set_unique_id(user_input[CONF_NAME])
             # self._abort_if_unique_id_configured()
 
-            username = user_input[CONF_USERNAME]
-            password = user_input[CONF_PASSWORD]
+            physical_address= user_input[CONF_ADDRESS]
+            email_address = user_input[CONF_EMAIL]
+            email_password = user_input[CONF_PASSWORD]
+            email_server = user_input[CONF_HOST]
+            email_port = user_input[CONF_PORT]
 
+            premise_id = None
             try:
-                self.api = await create_api(self.hass, username, password)
+                premise_id = get_premise_id(physical_address)
 
-            except ideenergy.ClientError:
-                errors["base"] = "invalid_auth"
+            except AddressError:
+                errors["base"] = "invalid_address"
 
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
-            else:
-                self.info.update(
-                    {
-                        CONF_USERNAME: username,
-                        CONF_PASSWORD: password,
-                    }
-                )
-                return await self.async_step_contract()
+            if  premise_id is not None:
+                try:
+                    self.api = await create_api(premise_id, email_address, email_password, email_server, email_port)
+
+                except Exception:  # pylint: disable=broad-except
+                    _LOGGER.exception("Unexpected exception")
+                    errors["base"] = "unknown"
+
+                else:
+                    self.info.update(
+                        {
+                            CONF_PREMISE_ID: premise_id,
+                            CONF_EMAIL: email_address,
+                            CONF_PASSWORD: email_password,
+                            CONF_HOST: email_server,
+                            CONF_PORT: email_port,
+                        }
+                    )
+                    title = f"Premise {premise_id}"
+                    return self.async_create_entry(title=title, data=self.info)
 
         return self.async_show_form(
             step_id="user",
             data_schema=AUTH_SCHEMA,
             errors=errors,
         )
-
-    async def async_step_contract(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        contracts = await self.api.get_contracts()
-        contracts = {f"{x['cups']} ({x['direccion']})": x for x in contracts}
-
-        schema = vol.Schema({vol.Required(CONF_CONTRACT): vol.In(contracts.keys())})
-
-        if not user_input:
-            return self.async_show_form(step_id="contract", data_schema=schema)
-
-        contract = contracts[user_input["contract"]]
-        self.info.update(
-            {
-                CONF_CONTRACT: contract["codContrato"],
-            }
-        )
-
-        title = "CUPS " + contract["cups"]
-        return self.async_create_entry(title=title, data=self.info)
 
 
 # class OptionsFlowHandler(config_entries.OptionsFlow):
@@ -129,9 +126,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call
 #         return self.async_show_form(step_id="init", data_schema=OPTIONS_SCHEMA)
 
 
-async def create_api(hass, username, password):
-    sess = async_create_clientsession(hass)
-    client = ideenergy.Client(sess, username, password)
-
-    await client.login()
-    return client
+async def create_api(premise_id, email_address, email_password, email_server, email_port):
+    return SynergyDataFetcher(
+        premise_id=premise_id,
+        email_address=email_address,
+        password=email_password,
+        email_server=email_server,
+        email_port=email_port,
+    )

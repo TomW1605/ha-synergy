@@ -15,6 +15,7 @@
       }
     },
     "error": {
+      "invalid_address": "Invalid Address",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },

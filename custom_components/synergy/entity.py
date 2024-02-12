@@ -31,13 +31,15 @@ from homeassistant_historical_sensor.recorderutil import (
     hass_recorder_session,
 )
 
-SensorType = type["IDeEntity"]
+from custom_components.synergy import CONF_PREMISE_ID
+
+SensorType = type["SynergyEntity"]
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class IDeEntity(CoordinatorEntity):
+class SynergyEntity(CoordinatorEntity):
     """The IDeSensor class provides:
     __init__
     __repr__
@@ -47,20 +49,22 @@ class IDeEntity(CoordinatorEntity):
     entity_registry_enabled_default
     """
 
-    I_DE_ENTITY_NAME = ""
-    I_DE_DATA_SETS = []  # type: ignore[var-annotated]
+    SYNERGY_ENTITY_NAME = ""
+    SYNERGY_DATA_SETS = []  # type: ignore[var-annotated]
 
     def __init__(self, *args, config_entry, device_info, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.config_entry = config_entry
+
         self._attr_has_entity_name = True
-        self._attr_name = self.I_DE_ENTITY_NAME
+        self._attr_name = self.SYNERGY_ENTITY_NAME
 
         self._attr_unique_id = _build_entity_unique_id(
-            device_info, self.I_DE_ENTITY_NAME
+            device_info, self.SYNERGY_ENTITY_NAME
         )
         self._attr_entity_id = _build_entity_entity_id(
-            self.I_DE_PLATFORM, device_info, self.I_DE_ENTITY_NAME
+            self.SYNERGY_PLATFORM, device_info, self.SYNERGY_ENTITY_NAME
         )
 
         self._attr_device_info = device_info
@@ -69,12 +73,8 @@ class IDeEntity(CoordinatorEntity):
 
     def __repr__(self):
         clsname = self.__class__.__name__
-        if hasattr(self, "coordinator"):
-            api = self.coordinator.api.username
-        else:
-            api = self.api
 
-        return f"<{clsname} {api.username}/{api._contract}>"
+        return f"<{clsname} {self.config_entry.data[CONF_PREMISE_ID]}>"
 
     async def async_added_to_hass(self) -> None:
         n_invalid_states = await self.async_delete_invalid_states()
@@ -102,8 +102,8 @@ class IDeEntity(CoordinatorEntity):
 
 
 def _build_entity_unique_id(device_info: DeviceInfo, entity_unique_name: str) -> str:
-    cups = dict(device_info["identifiers"])["cups"]
-    return slugify(f"{cups}-{entity_unique_name}", separator="-")
+    premise_id = dict(device_info["identifiers"])["premise_id"]
+    return slugify(f"{entity_unique_name}-{premise_id}", separator="-")
 
 
 def _build_entity_entity_id(

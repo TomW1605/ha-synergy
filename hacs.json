@@ -1,5 +1,5 @@
 {
-  "name": "i-DE Energy Monitor",
+  "name": "Synergy Energy Monitor",
   "render_readme": true,
   "content_in_root": false,
   "homeassistant": "2023.6.0"

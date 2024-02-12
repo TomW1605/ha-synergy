@@ -18,23 +18,18 @@
 
 from datetime import timedelta
 
-DOMAIN = "ideenergy"
+DOMAIN = "synergy"
 
-CONF_CONTRACT = "contract"
+CONF_PREMISE_ID = "premise_id"
 
-MEASURE_MAX_AGE = 60 * 50  # Fifty minutes
 MAX_RETRIES = 3
 MIN_SCAN_INTERVAL = 60
 UPDATE_WINDOW_START_MINUTE = 50
 UPDATE_WINDOW_END_MINUTE = 59
 API_USER_SESSION_TIMEOUT = 60
 
-
-DATA_ATTR_MEASURE_ACCUMULATED = "measure_accumulated"
-DATA_ATTR_MEASURE_INSTANT = "measure_instant"
 DATA_ATTR_HISTORICAL_CONSUMPTION = "historical_consumption"
 DATA_ATTR_HISTORICAL_GENERATION = "historical_generation"
-DATA_ATTR_HISTORICAL_POWER_DEMAND = "historical_power_demand"
 
 HISTORICAL_PERIOD_LENGHT = timedelta(days=7)
-CONFIG_ENTRY_VERSION = 3
+CONFIG_ENTRY_VERSION = 1

@@ -21,9 +21,9 @@ import logging
 import math
 from datetime import timedelta
 
-import ideenergy
+from .SynergyDataFetcher import SynergyDataFetcher
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -32,15 +32,14 @@ from homeassistant.helpers.entity import DeviceInfo
 from .barrier import TimeDeltaBarrier, TimeWindowBarrier  # NoopBarrier,
 from .const import (
     API_USER_SESSION_TIMEOUT,
-    CONF_CONTRACT,
+    CONF_PREMISE_ID,
     DOMAIN,
     MAX_RETRIES,
-    MEASURE_MAX_AGE,
     MIN_SCAN_INTERVAL,
     UPDATE_WINDOW_END_MINUTE,
     UPDATE_WINDOW_START_MINUTE,
 )
-from .datacoordinator import DataSetType, IDeCoordinator
+from .datacoordinator import DataSetType, SynergyCoordinator
 from .updates import update_integration
 
 PLATFORMS: list[str] = ["sensor"]
@@ -49,43 +48,21 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    api = IDeEnergyAPI(hass, entry)
+    api = SynergyAPI(entry)
 
-    try:
-        contract_details = await api.get_contract_details()
-    except ideenergy.client.ClientError as e:
-        _LOGGER.debug(f"Unable to initialize integration: {e}")
-        return False
+    device_info = SynergyDeviceInfo(entry.data[CONF_PREMISE_ID])
 
-    device_info = IDeEnergyDeviceInfo(contract_details)
-
-    coordinator = IDeCoordinator(
+    coordinator = SynergyCoordinator(
         hass=hass,
         api=api,
-        barriers={
-            DataSetType.MEASURE: TimeWindowBarrier(
-                allowed_window_minutes=(
-                    UPDATE_WINDOW_START_MINUTE,
-                    UPDATE_WINDOW_END_MINUTE,
-                ),
-                max_retries=MAX_RETRIES,
-                max_age=timedelta(seconds=MEASURE_MAX_AGE),
+        barrier=TimeWindowBarrier(
+                allowed_window_hours=(0, 1)
             ),
-            DataSetType.HISTORICAL_CONSUMPTION: TimeDeltaBarrier(
-                delta=timedelta(hours=6)
-            ),
-            DataSetType.HISTORICAL_GENERATION: TimeDeltaBarrier(
-                delta=timedelta(hours=6)
-            ),
-            DataSetType.HISTORICAL_POWER_DEMAND: TimeDeltaBarrier(
-                delta=timedelta(hours=36)
-            ),
-        },
         # Use default update_interval and relay on barriers for now
         # MEASURE barrier should deny if last attempt (success or not) is too recent to
         # prevent api smashing or subsequent baning
-        update_interval=_calculate_datacoordinator_update_interval(),
-        # update_interval=timedelta(seconds=30),
+        # update_interval=_calculate_datacoordinator_update_interval(),
+        update_interval=timedelta(hours=12),
     )
 
     # Don't refresh coordinator yet since there isn't any sensor registered
@@ -145,33 +122,26 @@ def _calculate_datacoordinator_update_interval() -> timedelta:
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry):
-    api = IDeEnergyAPI(hass, entry)
+    api = SynergyAPI(entry)
 
-    try:
-        contract_details = await api.get_contract_details()
-    except ideenergy.client.ClientError as e:
-        _LOGGER.debug(f"Unable to initialize integration: {e}")
-        return False
-
-    update_integration(hass, entry, IDeEnergyDeviceInfo(contract_details))
+    update_integration(hass, entry, SynergyDeviceInfo(entry.data[CONF_PREMISE_ID]))
     return True
 
 
-def IDeEnergyDeviceInfo(contract_details):
+def SynergyDeviceInfo(premise_id):
     return DeviceInfo(
         identifiers={
-            ("cups", contract_details["cups"]),
+            ("premise_id", premise_id),
         },
-        name=contract_details["cups"],
-        manufacturer=contract_details["listContador"][0]["tipMarca"],
+        name=premise_id,
     )
 
 
-def IDeEnergyAPI(hass: HomeAssistant, entry: ConfigEntry):
-    return ideenergy.Client(
-        session=async_get_clientsession(hass),
-        username=entry.data[CONF_USERNAME],
+def SynergyAPI(entry: ConfigEntry):
+    return SynergyDataFetcher(
+        premise_id=entry.data[CONF_PREMISE_ID],
+        email_address=entry.data[CONF_EMAIL],
         password=entry.data[CONF_PASSWORD],
-        contract=entry.data[CONF_CONTRACT],
-        user_session_timeout=API_USER_SESSION_TIMEOUT,
+        email_server=entry.data[CONF_HOST],
+        email_port=entry.data[CONF_PORT],
     )

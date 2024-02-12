@@ -37,7 +37,7 @@ ATTR_FORCED = "forced"
 ATTR_LAST_SUCCESS = "last_success"
 ATTR_STATE = "state"
 ATTR_RETRY = "retry"
-ATTR_ALLOWED_WINDOW_MINUTES = "allowed_window_minutes"
+ATTR_ALLOWED_WINDOW_HOURS = "allowed_window_hours"
 
 DEFAULT_MAX_RETRIES = 3
 
@@ -177,12 +177,12 @@ class RetryableBarrier:
 class TimeWindowBarrier(Barrier):
     def __init__(
         self,
-        allowed_window_minutes: tuple[int, int],
+        allowed_window_hours: tuple[int, int],
         max_retries: int,
         max_age: timedelta,
     ):
         self._max_age = max_age
-        self._allowed_window_minutes = allowed_window_minutes
+        self._allowed_window_hours = allowed_window_hours
         self._max_retries = max_retries
 
         zero_dt = dt_util.utc_from_timestamp(0)
@@ -201,7 +201,7 @@ class TimeWindowBarrier(Barrier):
             # Configuration
             ATTR_MAX_AGE: self._max_age,
             ATTR_MAX_RETRIES: self._max_retries,
-            ATTR_ALLOWED_WINDOW_MINUTES: self._allowed_window_minutes,
+            ATTR_ALLOWED_WINDOW_HOURS: self._allowed_window_hours,
             # Internal state
             ATTR_COOLDOWN: self._cooldown,
             ATTR_FORCED: self._force_next,
@@ -224,14 +224,14 @@ class TimeWindowBarrier(Barrier):
         now = now or self.utcnow()
 
         update_window_is_open = (
-            self._allowed_window_minutes[0]
-            <= dt_util.as_local(now).minute
-            <= self._allowed_window_minutes[1]
+            self._allowed_window_hours[0]
+            <= dt_util.as_local(now).hour
+            <= self._allowed_window_hours[1]
         )
         last_success_age = (now - self._last_success).total_seconds()
         min_age = (
-            self._allowed_window_minutes[1] - self._allowed_window_minutes[0]
-        ) * 60
+            self._allowed_window_hours[1] - self._allowed_window_hours[0]
+        ) * 3600
 
         # Check if cooldown has been reached
         if self._failures >= self._max_retries and now >= self._cooldown:

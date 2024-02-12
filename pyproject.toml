@@ -9,7 +9,7 @@ target-version = ['py311']
 profile = "black"
 
 [tool.mypy]
-files = ["custom_components/ideenergy"]
+files = ["custom_components/synergy"]
 
 [tool.pyupgrade]
 addopts = "--py311-plus"

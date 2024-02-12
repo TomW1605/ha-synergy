@@ -1,20 +1,11 @@
-# i-DE (Iberdrola Distribución) Custom Integration for Home Assistant
+# This is still in very early development, the config flow works but none of the fields are labelled and errors are not handled well
 
-<!-- HomeAssistant badges -->
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![hassfest validation](https://github.com/ldotlopez/ha-ideenergy/workflows/Validate%20with%20hassfest/badge.svg)](https://github.com/ldotlopez/ha-ideenergy/actions/workflows/hassfest.yml)
-[![HACS validation](https://github.com/ldotlopez/ha-ideenergy/workflows/Validate%20with%20HACS/badge.svg)](https://github.com/ldotlopez/ha-ideenergy/actions/workflows/hacs.yml)
+# Synergy Custom Integration for Home Assistant
 
-<!-- Code and releases -->
-![GitHub Release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/ldotlopez/ha-ideenergy?include_prereleases)
-[![CodeQL](https://github.com/ldotlopez/ha-ideenergy/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ldotlopez/ha-ideenergy/actions/workflows/codeql-analysis.yml)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
-[ideenergy](https://github.com/ldotlopez/ideenergy) integration for [home-assistant](https://home-assistant.io/)
+[Synergy](https://github.com/TomW1605/synergyPowerScraper) integration for [home-assistant](https://home-assistant.io/)
 
-i-DE (Iberdrola Distribución) Custom Integration for Home Assistant, providing sensors for Spanish Energy Distributor [i-DE](https://i-de.es).
-
-This integration requires an **advanced** user profile on i-DE website.
+Synergy Custom Integration for Home Assistant, providing sensors for Western Australian energy distributor [Synergy](https://www.synergy.net.au/).
 
 **⚠️ Make sure to read the '[FAQ](https://github.com/ldotlopez/ha-ideenergy/blob/main/FAQ.md)', 'Dependencies' and 'Warning' sections**
 
@@ -23,20 +14,14 @@ This integration requires an **advanced** user profile on i-DE website.
 
 * Integration with the Home Assistant Energy Panel.
 
-* Accumulated and Instant consumption sensors.
-
 * Historical sensors (both consumption and solar generation) with better (sub-kWh) precision. This data is not realtime and usually has a 24-hour to 48-hour offset.
 
-* Support for multiple contracts (service points).
-
 * Configuration through [Home Assistant Interface](https://developers.home-assistant.io/docs/config_entries_options_flow_handler) without the need to edit YAML files.
-
-* Update algorithm to read the meter near the end of each hourly period (between minute 50 and 59)
-with a better representation of consumption in the Home Assistant energy panel.
 
 * Fully [asynchronous](https://developers.home-assistant.io/docs/asyncio_index) and integrated with HomeAssistant.
 
 
+# Everything below here is for the fork source and needs updating
 ## Dependencies
 
 You must have an i-DE username and access to the Clients' website. You may register here: [Área Clientes | I-DE - Grupo Iberdrola](https://www.i-de.es/consumidores/web/guest/login).

@@ -1,19 +1,18 @@
 {
-  "domain": "ideenergy",
-  "name": "i-DE Energy Monitor",
+  "domain": "synergy",
+  "name": "Synergy Energy Monitor",
   "codeowners": [
-    "@ldotlopez"
+    "@tomw1605"
   ],
   "config_flow": true,
   "dependencies": [
     "recorder"
   ],
-  "documentation": "https://github.com/ldotlopez/ha-ideenergy",
+  "documentation": "https://github.com/TomW1605/ha-synergy_2",
   "integration_type": "device",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/ldotlopez/ha-ideenergy/issues",
+  "issue_tracker": "https://github.com/TomW1605/ha-synergy_2/issues",
   "requirements": [
-    "ideenergy>=2.0.0rc1",
     "homeassistant-historical-sensor==2.0.0rc5"
   ],
   "version": "2.1.2"
