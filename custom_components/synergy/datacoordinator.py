@@ -87,6 +87,8 @@ class SynergyCoordinator(DataUpdateCoordinator):
 
         self.sensors: list[SynergyEntity] = []
 
+        self.data: list[dict[str, Any]]
+
     async def _async_update_data(self):
         """Fetch data from API endpoint.
 
@@ -114,8 +116,15 @@ class SynergyCoordinator(DataUpdateCoordinator):
         end = datetime.today()
         start = end - HISTORICAL_PERIOD_LENGHT
 
+        _LOGGER.debug(f"update started")
+
         await self.api.fetch(start_date=start, end_date=end)
         data = self.api.parse()
+
+        if data is None:
+            self.barrier.fail()
+            _LOGGER.debug(f"update failed")
+            return []
 
         self.barrier.success()
         _LOGGER.debug(f"update successful")

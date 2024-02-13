@@ -234,7 +234,7 @@ class HistoricalConsumption(
 ):
     SYNERGY_PLATFORM = PLATFORM
     SYNERGY_ENTITY_NAME = "Historical Consumption"
-    SYNERGY_DATA_SETS = [DataSetType.HISTORICAL_CONSUMPTION]
+    # SYNERGY_DATA_SETS = [DataSetType.HISTORICAL_CONSUMPTION]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -258,11 +258,13 @@ class HistoricalConsumption(
 
     @property
     def historical_states(self):
+        if self.coordinator.data is None:
+            return []
+
         hist_states = [
             HistoricalState(
                 state=data["total_kwh"],
-                dt=dtutil.as_local(data['timestamp']),
-            )
+                dt=dtutil.as_local(data['timestamp']))
             for data in self.coordinator.data
         ]
         return hist_states
@@ -273,7 +275,7 @@ class HistoricalGeneration(
 ):
     SYNERGY_PLATFORM = PLATFORM
     SYNERGY_ENTITY_NAME = "Historical Generation"
-    SYNERGY_DATA_SETS = [DataSetType.HISTORICAL_GENERATION]
+    # SYNERGY_DATA_SETS = [DataSetType.HISTORICAL_GENERATION]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -297,11 +299,13 @@ class HistoricalGeneration(
 
     @property
     def historical_states(self):
+        if self.coordinator.data is None:
+            return []
+
         hist_states = [
             HistoricalState(
                 state=data["generation_kwh"],
-                dt=dtutil.as_local(data['timestamp']),
-            )
+                dt=dtutil.as_local(data['timestamp']))
             for data in self.coordinator.data
         ]
         return hist_states

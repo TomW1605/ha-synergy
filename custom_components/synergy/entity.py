@@ -50,7 +50,7 @@ class SynergyEntity(CoordinatorEntity):
     """
 
     SYNERGY_ENTITY_NAME = ""
-    SYNERGY_DATA_SETS = []  # type: ignore[var-annotated]
+    # SYNERGY_DATA_SETS = []  # type: ignore[var-annotated]
 
     def __init__(self, *args, config_entry, device_info, **kwargs):
         super().__init__(*args, **kwargs)
@@ -103,7 +103,7 @@ class SynergyEntity(CoordinatorEntity):
 
 def _build_entity_unique_id(device_info: DeviceInfo, entity_unique_name: str) -> str:
     premise_id = dict(device_info["identifiers"])["premise_id"]
-    return slugify(f"{entity_unique_name}-{premise_id}", separator="-")
+    return slugify(f"{premise_id}-{entity_unique_name}", separator="-")
 
 
 def _build_entity_entity_id(

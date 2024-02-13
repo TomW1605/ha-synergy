@@ -56,13 +56,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass=hass,
         api=api,
         barrier=TimeWindowBarrier(
-                allowed_window_hours=(0, 1)
+                allowed_window_hours=(0, 1),
+                max_retries=1,
+                max_age=timedelta(days=2)
             ),
         # Use default update_interval and relay on barriers for now
         # MEASURE barrier should deny if last attempt (success or not) is too recent to
         # prevent api smashing or subsequent baning
         # update_interval=_calculate_datacoordinator_update_interval(),
-        update_interval=timedelta(hours=12),
+        update_interval=timedelta(minutes=10),
     )
 
     # Don't refresh coordinator yet since there isn't any sensor registered

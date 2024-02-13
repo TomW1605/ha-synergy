@@ -67,7 +67,7 @@ class SynergyDataFetcher:
                 else:
                     raise Exception("Failed to login with email token.")
         elif login_email_response.status_code == 400 and "you have had too many attempts" in login_email_response.text:
-            print("Too many attempts, try again tomorrow.")
+            raise Exception("Too many attempts, try again tomorrow.")
         else:
             raise Exception(f"Web server response did not meet expected conditions. {login_email_response.status_code}")
 
