@@ -1,3 +1,5 @@
+# WARNING: this is currently unstable and WILL cause apparent database coruption. this is fully recoverable (the DB isnt actually corrupt) but any data between the corruption and recovering the old DB will be lost. i recomend against using it untill the issues with the historical sensor intergrations have been fixed
+
 # This is still in very early development, the config flow works but none of the fields are labelled and errors are not handled well
 
 # Synergy Custom Integration for Home Assistant
